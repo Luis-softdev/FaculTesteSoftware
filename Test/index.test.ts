@@ -31,12 +31,12 @@ describe("AuctionService", () => {
     });
 
     it("não deve inserir um lance caso o status da auction não seja aberto", () => {
-      const user = new User("1", "Usuário Teste");
+      const user = new User("1", "Tony");
       auctionService.addUser(user);
 
       const auction = new Auction(
         "1",
-        "Leilão Teste",
+        "Onix 1.0",
         AuctionStatus.EXPIRADO,
         new Date("2024-03-10"),
         100
@@ -47,6 +47,117 @@ describe("AuctionService", () => {
 
       expect(result).toBe(false);
     });
+
+    it("não deve inserir um lance se não existir um leilão", () => {
+      const user = new User("5", "Gabriel");
+      auctionService.addUser(user);
+
+      const result = auctionService.placeBid("99", "5", 250);
+
+      expect(result).toBe(false);
+    });
+
+    it("não deve inserir um lance se não existir um usuário", () => {
+
+      const auction = new Auction(
+        "1",
+        "Boi Nelore",
+        AuctionStatus.ABERTO,
+        new Date("2024-03-10"),
+        300
+      );
+      auctionService.addAuction(auction);
+
+      const result = auctionService.placeBid("1", "99", 300);
+
+      expect(result).toBe(false);
+    });
+
+    it("não deve inserir um lance se o valor for menor do que o valor mínimo", () => {
+      const user = new User("1", "Elon");
+      auctionService.addUser(user);
+
+      const auction = new Auction(
+        "1",
+        "Máquina de Lavar",
+        AuctionStatus.ABERTO,
+        new Date("2024-03-10"),
+        100
+      );
+      auctionService.addAuction(auction);
+
+      const result = auctionService.placeBid("1", "1", 50);
+
+      expect(result).toBe(false);
+    });
+
+    it("não deve inserir um lance se o valor for menor ou igual ao lance anterior", () => {
+      const user = new User("1", "Fran");
+      auctionService.addUser(user);
+
+      const auction = new Auction(
+        "1",
+        "Jogo de Cartas",
+        AuctionStatus.ABERTO,
+        new Date("2024-03-10"),
+        100
+      );
+      auctionService.addAuction(auction);
+
+      // Lance inicial
+      auctionService.placeBid('1', '1', 150);
+
+      // Tentando inserir um lance igual
+      const resultEqual = auctionService.placeBid("1", "1", 150);
+      expect(resultEqual).toBe(false);
+
+      // Tentando inserir um lance menor
+      const resultLower = auctionService.placeBid("1", "1", 100);
+      expect(resultLower).toBe(false);
+    });
+  });
+
+  describe("Testes da função getHighestBidForAuction", () => {
+    it('deve retornar null se o leilão não existir', () => {
+      const result = auctionService.getHighestBidForAuction('9999');
+      expect(result).toBeNull();
+    });
+
+    it('deve retornar null se o leilão não tiver lances', () => {
+      const auction = new Auction(
+        '1',
+        'Moto Honda',
+        AuctionStatus.ABERTO,
+        new Date('2024-03-10'),
+        100);
+
+      auctionService.addAuction(auction);
+
+      const result = auctionService.getHighestBidForAuction('1');
+      expect(result).toBeNull();
+    });
+
+    it('deve retornar o maior lance se o leilão tiver lances', () => {
+      const user1 = new User('1', 'Luisim');
+      const user2 = new User('2', 'Luisão');
+      auctionService.addUser(user1);
+      auctionService.addUser(user2);
+  
+      const auction = new Auction(
+        '1',
+        'Iphone 16',
+        AuctionStatus.ABERTO,
+        new Date('2024-03-10'),
+        100);
+      auctionService.addAuction(auction);
+  
+      auctionService.placeBid('1', '1', 150);
+      auctionService.placeBid('1', '2', 200);
+  
+      const result = auctionService.getHighestBidForAuction('1');
+      expect(result).toEqual({ bidderId: '2', value: 200 });
+  });
+  
   });
 
   it("deve retornar o menor lance para um leilão", () => {
@@ -142,4 +253,6 @@ describe("AuctionService", () => {
       },
     ]);
   });
+
+
 });
