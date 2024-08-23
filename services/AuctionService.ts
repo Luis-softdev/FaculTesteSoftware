@@ -39,7 +39,6 @@ export class AuctionService {
       auction.bids.length > 0
         ? auction.bids[auction.bids.length - 1].value
         : auction.minimumBid;
-    console.log(lastBid);
 
     if (value <= lastBid || auction.bids.at(-1)?.bidderId === bidderId) {
       return false;
@@ -50,10 +49,10 @@ export class AuctionService {
   }
 
   // Método para obter o maior lance para um leilão
-  public getHighestBidForAuction(auctionId: string): Bid | null {
+  public getHighestBidForAuction(auctionId: string): Bid | undefined {
     const auction = this.auctions.find((auction) => auction.id === auctionId);
     if (!auction || auction.bids.length === 0) {
-      return null;
+      return;
     }
     return auction.getHighestBid();
   }
@@ -64,23 +63,54 @@ export class AuctionService {
     if (!auction || auction.bids.length === 0) {
       return null;
     }
-    return auction.bids.reduce((prev, current) =>
-      prev.value < current.value ? prev : current
-    );
+    return auction.bids[0] 
   }
 
   // Método para obter a lista de lances para um leilão em ordem crescente de valor
-  public getBidsForAuction(auctionId: string): Bid[] | null {
+  public getBidsForAuction(auctionId: string): Bid[] | undefined {
     const auction = this.auctions.find((auction) => auction.id === auctionId);
-    console.log(auction);
 
     if (!auction) {
-      return null;
+      return;
     }
-    return auction.bids.sort((a, b) => b.value - a.value);
+    const bids = auction.bids.sort((a, b) => b.value - a.value);
+    console.table(bids);
+    return bids
   }
 
   public getAllAuctions(): IAuction[] {
     return this.auctions.map((auction) => auction.getAuctionValue());
+  }
+
+  public finalizeAuction(auctionId: string): { message: string; email?: string; auction?: Auction; status: number } {
+    const auction = this.auctions.find((auction) => auction.id === auctionId);
+
+    if (!auction || auction.status !== AuctionStatus.ABERTO) {
+      return {
+        message: 'Leilão não encontrado ou já finalizado.',
+        status: 404
+      };
+    }
+
+    auction.status = AuctionStatus.FINALIZADO;
+    const bids = auction.bids;
+    const lastBid: Bid | undefined = bids.length > 0 ? bids[bids.length - 1] : undefined;
+
+    if (lastBid) {
+      const winner = this.users.find((user) => user.id === lastBid.bidderId)?.name || 'Desconhecido';
+      const emailMessage = `Parabéns! Você é o vencedor, ${winner}!`;
+
+      return {
+        message: 'Leilão finalizado com sucesso!',
+        email: emailMessage,
+        auction: auction,
+        status: 200
+      };
+    } else {
+      return {
+        message: 'Leilão finalizado sem lances.',
+        status: 200
+      };
+    }
   }
 }

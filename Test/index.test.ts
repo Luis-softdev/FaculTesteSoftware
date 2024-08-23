@@ -120,7 +120,7 @@ describe("AuctionService", () => {
   describe("Testes da função getHighestBidForAuction", () => {
     it('deve retornar null se o leilão não existir', () => {
       const result = auctionService.getHighestBidForAuction('9999');
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
     it('deve retornar null se o leilão não tiver lances', () => {
@@ -134,7 +134,7 @@ describe("AuctionService", () => {
       auctionService.addAuction(auction);
 
       const result = auctionService.getHighestBidForAuction('1');
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
     it('deve retornar o maior lance se o leilão tiver lances', () => {
@@ -142,7 +142,7 @@ describe("AuctionService", () => {
       const user2 = new User('2', 'Luisão');
       auctionService.addUser(user1);
       auctionService.addUser(user2);
-  
+
       const auction = new Auction(
         '1',
         'Iphone 16',
@@ -150,33 +150,91 @@ describe("AuctionService", () => {
         new Date('2024-03-10'),
         100);
       auctionService.addAuction(auction);
-  
+
       auctionService.placeBid('1', '1', 150);
       auctionService.placeBid('1', '2', 200);
-  
+
       const result = auctionService.getHighestBidForAuction('1');
       expect(result).toEqual({ bidderId: '2', value: 200 });
+    });
+
   });
-  
+
+  describe("Teste para a função getHighestBid", () => {
+    it('deve retornar null se não houver lances para o leilão', () => {
+
+      const auction = new Auction(
+        "1",
+        "HRV",
+        AuctionStatus.ABERTO,
+        new Date("2024-03-10"),
+        100
+      );
+      auctionService.addAuction(auction);
+
+      const result = auction.getHighestBid();
+      expect(result).toBeUndefined();
+    });
+
   });
 
-  it("deve retornar o menor lance para um leilão", () => {
-    const user = new User("1", "Usuário Teste");
-    auctionService.addUser(user);
+  describe("Testes para a função getLowestBidForAuction", () => {
+    it('deve retornar null se o leilão não existir', () => {
+      const result = auctionService.getLowestBidForAuction('99');
+      expect(result).toBeNull();
+    });
 
-    const auction = new Auction(
-      "1",
-      "Leilão Teste",
-      AuctionStatus.ABERTO,
-      new Date("2024-03-10"),
-      100
-    );
-    auctionService.addAuction(auction);
+    it('deve retornar null se o leilão não tiver lances', () => {
+      const auction = new Auction('1', 'Leilão Sem Lances', AuctionStatus.ABERTO, new Date('2024-03-10'), 100);
+      auctionService.addAuction(auction);
 
-    auctionService.placeBid("1", "1", 150);
+      const result = auctionService.getLowestBidForAuction('1');
+      expect(result).toBeNull();
+    });
 
-    const lowestBid = auctionService.getLowestBidForAuction("1");
-    expect(lowestBid).toEqual({ bidderId: "1", value: 150 });
+    it('deve retornar o menor lance entre múltiplos lances', () => {
+      const user1 = new User('1', 'Usuário Teste 1');
+      const user2 = new User('2', 'Usuário Teste 2');
+      auctionService.addUser(user1);
+      auctionService.addUser(user2);
+
+      const auction = new Auction('1', 'Leilão Teste', AuctionStatus.ABERTO, new Date('2024-03-10'), 100);
+      auctionService.addAuction(auction);
+
+      auctionService.placeBid('1', user1.id, 200);
+      auctionService.placeBid('1', user2.id, 300);
+      auctionService.placeBid('1', user1.id, 400);
+      console.log(auction.bids);
+      
+
+      const result = auctionService.getLowestBidForAuction('1');
+      expect(result).toEqual({ bidderId: '1', value: 200 });
+    });
+
+    it('deve retornar o único lance quando houver apenas um lance', () => {
+      const user = new User('1', 'Usuário Teste');
+      auctionService.addUser(user);
+
+      const auction = new Auction('1', 'Leilão Teste', AuctionStatus.ABERTO, new Date('2024-03-10'), 100);
+      auctionService.addAuction(auction);
+
+      auctionService.placeBid('1', user.id, 200);
+
+      const result = auctionService.getLowestBidForAuction('1');
+      expect(result).toEqual({ bidderId: '1', value: 200 });
+    });
+    
+  });
+
+  describe("Testes para a função getBidsForAuction", () => {
+    it('deve retornar null se o leilão não existir', () => {
+      const result = auctionService.getBidsForAuction('9999');
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("Testes para a função finalizeAuction", () => {
+
   });
 
   it("deve retornar a lista de lances para um leilão em ordem crescente de valor", () => {
@@ -199,7 +257,6 @@ describe("AuctionService", () => {
     auctionService.placeBid("1", user1.id, 200);
 
     const bids = auctionService.getBidsForAuction("1");
-    console.log(bids);
 
     expect(bids).toEqual([
       { bidderId: user1.id, value: 200 },

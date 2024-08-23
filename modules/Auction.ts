@@ -43,15 +43,14 @@ export class Auction {
     };
   }
 
-  public getHighestBid(): Bid | null {
+  public getHighestBid(): Bid | undefined {
     if (this.bids.length === 0) {
-      return null;
+      return;
     }
-    return this.bids.reduce((prev, current) =>
-      prev.value > current.value ? prev : current
-    );
+    return this.bids.at(-1);
   }
 }
+
 
 export interface Bid {
   bidderId: string;
