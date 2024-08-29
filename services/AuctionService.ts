@@ -109,6 +109,7 @@ export class AuctionService {
     } else {
       return {
         message: 'Leilão finalizado sem lances.',
+        auction: auction,
         status: 200
       };
     }

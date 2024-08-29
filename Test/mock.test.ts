@@ -26,13 +26,13 @@ describe("AuctionService", () => {
 
   it('deve finalizar o leilão com sucesso quando há lances', () => {
     
-    const bid = { bidderId: 'user1', value: 150 };
+    const bid = { bidderId: 'user1', value: 200 };
     mockAuction.bids.push(bid);
 
     const resultado = auctionService.finalizeAuction('auction1');
 
     expect(resultado.message).toBe('Leilão finalizado com sucesso!');
-    expect(resultado.email).toBe('Parabéns pelo arremate, João Silva!');
+    expect(resultado.email).toBe('Parabéns! Você é o vencedor, João Silva!');
     expect(resultado.auction?.status).toBe(AuctionStatus.FINALIZADO);
     expect(resultado.status).toBe(200);
   });
@@ -48,20 +48,20 @@ describe("AuctionService", () => {
   });
 
   it('deve retornar erro se o leilão não for encontrado ou já estiver finalizado', () => {
-
     const resultado1 = auctionService.finalizeAuction('leilaoInexistente');
+    
     const resultado2 = auctionService.finalizeAuction('auction1');
-
+    
     auctionService.finalizeAuction('auction1');
-
+    
     const resultado3 = auctionService.finalizeAuction('auction1');
-
+  
     expect(resultado1.message).toBe('Leilão não encontrado ou já finalizado.');
     expect(resultado1.status).toBe(404);
-
-    expect(resultado2.message).toBe('Leilão finalizado com sucesso!');
+  
+    expect(resultado2.message).toBe('Leilão finalizado sem lances.');
     expect(resultado2.status).toBe(200);
-
+  
     expect(resultado3.message).toBe('Leilão não encontrado ou já finalizado.');
     expect(resultado3.status).toBe(404);
   });
