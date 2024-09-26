@@ -233,10 +233,6 @@ describe("AuctionService", () => {
     });
   });
 
-  describe("Testes para a função finalizeAuction", () => {
-
-  });
-
   it("deve retornar a lista de lances para um leilão em ordem crescente de valor", () => {
     const user1 = new User("1", "Usuário Teste 1");
     const user2 = new User("2", "Usuário Teste 2");
